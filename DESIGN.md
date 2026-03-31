@@ -89,3 +89,27 @@ Behaviour:
 - Image is copied to labctl's managed directory and resized on creation
 - After configuration, user is prompted to start the VM immediately
 - Regardless of choice, labctl prints the start command for future reference
+
+# Project structure
+```text
+labctl/
+├── main.go                 # entry point, calls cmd.Execute(), nothing else
+├── go.mod
+├── go.sum
+├── DESIGN.md
+├── README.md
+├── cmd/                    # one file per command, Cobra lives here
+│   ├── root.go             # root command, global flags, initialises Cobra
+│   ├── new.go              # labctl new
+│   ├── start.go            # labctl start
+│   ├── stop.go             # labctl stop
+│   ├── delete.go           # labctl delete
+│   └── images.go           # labctl images
+└── internal/               # private packages, not importable externally
+    ├── vm/                 # talks to virsh/virt-install, manages VM lifecycle
+    ├── image/              # copies, resizes, registers base images
+    ├── cloudconfig/        # generates user-data and meta-data from templates
+    ├── iso/                # runs cloud-localds, produces seed.iso
+    ├── config/             # reads/writes ~/.config/labctl/config
+    └── tui/                # Bubble Tea wizard and interactive lists
+```
