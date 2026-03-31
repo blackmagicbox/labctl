@@ -1,4 +1,4 @@
-# labconfig
+# labctl
 
 
 
