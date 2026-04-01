@@ -9,6 +9,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "labctl",
 	Short: "Create and manage VMs",
+	Long:  "Create and manage your vms leveraging the cloud-init interface",
 }
 
 func Execute() {
