@@ -5,10 +5,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
-
-var labelStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("12"))
 
 type Model struct {
 	input     textinput.Model
@@ -16,9 +13,9 @@ type Model struct {
 	err       error
 }
 
-func New(defaultname string) Model {
+func New(defaultName string) Model {
 	ti := textinput.New()
-	ti.Placeholder = defaultname
+	ti.Placeholder = defaultName
 	ti.Focus()
 	ti.CharLimit = 64
 	return Model{input: ti}
