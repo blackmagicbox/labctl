@@ -23,4 +23,8 @@ base-images
 # Go workspace file
 go.work
 
-# End of https://www.toptal.com/developers/gitignore/api/go
+# Ides
+.idea
+.vscode
+.zed
+
