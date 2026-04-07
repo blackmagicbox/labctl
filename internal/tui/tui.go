@@ -1,50 +1,52 @@
 package tui
 
 import (
-	"fmt"
+	tea "charm.land/bubbletea/v2"
+)
 
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
+type step int
+
+const (
+	stepDistro step = iota
 )
 
 type Model struct {
-	input     textinput.Model
-	submitted bool
-	err       error
+	step           step
+	Distro         selectModel
+	SelectedDistro string
 }
 
-func New(defaultName string) Model {
-	ti := textinput.New()
-	ti.Placeholder = defaultName
-	ti.Focus()
-	ti.CharLimit = 64
-	return Model{input: ti}
+func New() Model {
+	return Model{
+		step:   stepDistro,
+		Distro: newSelect("distro", []string{"Debian/Ubuntu", "Rhel/Fedora", "Arch/Manjaro"}),
+	}
 }
 
 func (m Model) Init() tea.Cmd {
-	return textinput.Blink
+	return nil
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyCtrlC:
+	case tea.KeyPressMsg:
+		switch msg.String() {
+		case "ctrl+c", "q":
 			return m, tea.Quit
-		case tea.KeyEsc:
-			return m, tea.Quit
+		default:
+			m.Distro, _ = m.Distro.Update(msg)
+			m.SelectedDistro = m.Distro.Value()
 		}
 	}
 	var cmd tea.Cmd
-	m.input, cmd = m.input.Update(msg)
 	return m, cmd
 
 }
 
-func (m Model) View() string {
-	return fmt.Sprintf("%s %s\n", labelStyle.Render("? VM name:"), m.input.View())
+func (m Model) View() tea.View {
+	return m.Distro.View()
 }
 
 func (m Model) Value() string {
-	return m.input.Value()
+	return m.SelectedDistro
 }
