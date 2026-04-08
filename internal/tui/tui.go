@@ -1,19 +1,29 @@
 package tui
 
 import (
+	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 )
 
 type step int
 
 const (
-	stepDistro step = iota
+	stepPathToImg step = iota
+	stepExistentImg
+	stepDistro
+	stepImage
+	stepVMName
+	stepHostname
+	stepUsername
 )
 
 type Model struct {
-	step           step
-	Distro         selectModel
-	SelectedDistro string
+	step     step
+	Distro   selectModel
+	Image    selectModel
+	VMName   textinput.Model
+	Hostname textinput.Model
+	Username textinput.Model
 }
 
 func New() Model {
@@ -35,7 +45,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		default:
 			m.Distro, _ = m.Distro.Update(msg)
-			m.SelectedDistro = m.Distro.Value()
 		}
 	}
 	var cmd tea.Cmd
@@ -48,5 +57,5 @@ func (m Model) View() tea.View {
 }
 
 func (m Model) Value() string {
-	return m.SelectedDistro
+	return m.Distro.Value()
 }
