@@ -33,14 +33,19 @@ var Images = map[string][]string{
 }
 
 func New() Model {
+	n := textinput.New()
+	n.Placeholder = "example: ubuntu-noble"
+	n.CharLimit = 156
+	n.SetWidth(20)
 	return Model{
 		step:   stepDistro,
 		Distro: newSelect("distro", []string{"Debian/Ubuntu", "Rhel/Fedora", "Arch/Manjaro"}),
+		VMName: n,
 	}
 }
 
 func (m Model) Init() tea.Cmd {
-	return nil
+	return textinput.Blink
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -59,6 +64,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case stepImage:
 				m.Image, _ = m.Image.Update(msg)
+				if m.Image.Chosen() {
+					m.step = stepVMName
+				}
+			case stepVMName:
+				m.VMName.Focus()
+				m.VMName, _ = m.VMName.Update(msg)
 			default:
 			}
 		}
@@ -74,6 +85,8 @@ func (m Model) View() tea.View {
 		return m.Distro.View()
 	case stepImage:
 		return m.Image.View()
+	case stepVMName:
+		return tea.NewView(m.VMName.View())
 	default:
 		return tea.NewView(m.Distro.Value() + m.Image.Value())
 	}
