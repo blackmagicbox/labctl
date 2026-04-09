@@ -26,6 +26,12 @@ type Model struct {
 	Username textinput.Model
 }
 
+var Images = map[string][]string{
+	"Debian/Ubuntu": {"ubuntu-noble24", "ubuntu-1604", "ubuntu-1804"},
+	"Rhel/Fedora":   {"centos-stream-10", "fedora", "rocky-10"},
+	"Arch/Manjaro":  {"steamOS", "arch-linux-basic"},
+}
+
 func New() Model {
 	return Model{
 		step:   stepDistro,
@@ -44,16 +50,33 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		default:
-			m.Distro, _ = m.Distro.Update(msg)
+			switch m.step {
+			case stepDistro:
+				m.Distro, _ = m.Distro.Update(msg)
+				if m.Distro.Chosen() {
+					m.Image = newSelect("image:", Images[m.Distro.Value()])
+					m.step = stepImage
+				}
+			case stepImage:
+				m.Image, _ = m.Image.Update(msg)
+			default:
+			}
 		}
+
 	}
 	var cmd tea.Cmd
 	return m, cmd
-
 }
 
 func (m Model) View() tea.View {
-	return m.Distro.View()
+	switch m.step {
+	case stepDistro:
+		return m.Distro.View()
+	case stepImage:
+		return m.Image.View()
+	default:
+		return tea.NewView(m.Distro.Value() + m.Image.Value())
+	}
 }
 
 func (m Model) Value() string {
