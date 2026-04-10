@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"fmt"
+
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 )
@@ -37,10 +39,16 @@ func New() Model {
 	n.Placeholder = "example: ubuntu-noble"
 	n.CharLimit = 156
 	n.SetWidth(20)
+	h := textinput.New()
+	h.Placeholder = "example: ubuntu-1604"
+	h.CharLimit = 156
+	h.SetWidth(20)
+
 	return Model{
-		step:   stepDistro,
-		Distro: newSelect("distro", []string{"Debian/Ubuntu", "Rhel/Fedora", "Arch/Manjaro"}),
-		VMName: n,
+		step:     stepDistro,
+		Distro:   newSelect("distro", []string{"Debian/Ubuntu", "Rhel/Fedora", "Arch/Manjaro"}),
+		VMName:   n,
+		Hostname: h,
 	}
 }
 
@@ -70,6 +78,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case stepVMName:
 				m.VMName.Focus()
 				m.VMName, _ = m.VMName.Update(msg)
+				if msg.Code == tea.KeyEnter {
+					m.VMName.SetValue(m.VMName.Value() + "\n")
+					m.step = stepHostname
+				}
 			default:
 			}
 		}
@@ -80,11 +92,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() tea.View {
+	label := ""
 	switch m.step {
 	case stepDistro:
 		return m.Distro.View()
 	case stepImage:
-		return m.Image.View()
+		label += fmt.Sprintf("✔ distro: %s\n", m.Distro.View().Content)
+		return tea.NewView(fmt.Sprintf("%s %s \n", label, m.Image.View().Content))
 	case stepVMName:
 		return tea.NewView(m.VMName.View())
 	default:
