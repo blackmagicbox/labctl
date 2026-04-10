@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"time"
 
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
@@ -36,11 +37,11 @@ var Images = map[string][]string{
 
 func New() Model {
 	n := textinput.New()
-	n.Placeholder = "example: ubuntu-noble"
+	n.Placeholder = fmt.Sprintf("ubuntu-%s", time.Now().Format("20060102"))
 	n.CharLimit = 156
 	n.SetWidth(20)
 	h := textinput.New()
-	h.Placeholder = "example: ubuntu-1604"
+	h.Placeholder = fmt.Sprintf("ubuntu-lab")
 	h.CharLimit = 156
 	h.SetWidth(20)
 
@@ -67,7 +68,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case stepDistro:
 				m.Distro, _ = m.Distro.Update(msg)
 				if m.Distro.Chosen() {
-					m.Image = newSelect("image:", Images[m.Distro.Value()])
+					m.Image = newSelect("image", Images[m.Distro.Value()])
 					m.step = stepImage
 				}
 			case stepImage:
@@ -79,8 +80,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.VMName.Focus()
 				m.VMName, _ = m.VMName.Update(msg)
 				if msg.Code == tea.KeyEnter {
-					m.VMName.SetValue(m.VMName.Value() + "\n")
+					m.VMName.Blur()
+					if m.VMName.Value() == "" {
+						m.VMName.SetValue(m.VMName.Placeholder)
+					}
 					m.step = stepHostname
+				}
+			case stepHostname:
+				m.Hostname.Focus()
+				m.Hostname, _ = m.Hostname.Update(msg)
+				if msg.Code == tea.KeyEnter {
+					m.Hostname.Blur()
+					if m.Hostname.Value() == "" {
+						m.Hostname.SetValue(m.Hostname.Placeholder)
+					}
+					m.step = stepUsername
 				}
 			default:
 			}
@@ -92,17 +106,31 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() tea.View {
-	label := ""
+	out := ""
+	if m.Distro.Chosen() {
+		out = fmt.Sprintf("%s✔ distro: %s\n", out, m.Distro.Value())
+	}
+	if m.Image.Chosen() {
+		out = fmt.Sprintf("%s✔ image: %s\n", out, m.Image.Value())
+	}
+	if m.VMName.Value() != "" && !m.VMName.Focused() {
+		out = fmt.Sprintf("%s✔ VM name: %s\n", out, m.VMName.View())
+	}
+	if m.Hostname.Value() != "" && !m.Hostname.Focused() {
+		out = fmt.Sprintf("%s✔ hostname: %s\n", out, m.Hostname.View())
+	}
+
 	switch m.step {
 	case stepDistro:
 		return m.Distro.View()
 	case stepImage:
-		label += fmt.Sprintf("✔ distro: %s\n", m.Distro.View().Content)
-		return tea.NewView(fmt.Sprintf("%s %s \n", label, m.Image.View().Content))
+		return tea.NewView(fmt.Sprintf("%s%v", out, m.Image.View().Content))
 	case stepVMName:
-		return tea.NewView(m.VMName.View())
+		return tea.NewView(fmt.Sprintf("%s%s", out, m.VMName.View()))
+	case stepHostname:
+		return tea.NewView(fmt.Sprintf("%s%s", out, m.Hostname.View()))
 	default:
-		return tea.NewView(m.Distro.Value() + m.Image.Value())
+		return tea.NewView(out)
 	}
 }
 
