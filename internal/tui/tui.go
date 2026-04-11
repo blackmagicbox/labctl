@@ -45,17 +45,17 @@ func New() Model {
 	// VM name
 	n := textinput.New()
 	n.CharLimit = 156
-	n.SetWidth(20)
+	n.SetWidth(156)
 	// Hostname
 	h := textinput.New()
 	h.Placeholder = "linux-lab"
 	h.CharLimit = 156
-	h.SetWidth(20)
+	h.SetWidth(156)
 	// User name
 	u := textinput.New()
 	u.Placeholder = "admin"
 	u.CharLimit = 156
-	u.SetWidth(20)
+	u.SetWidth(156)
 	// Disk Size
 	d := textinput.New()
 	d.Placeholder = "20G"
@@ -226,6 +226,16 @@ func (m Model) View() tea.View {
 	}
 }
 
-func (m Model) Value() string {
-	return m.Distro.Value()
+func (m Model) Value() []string {
+	// Return a String with all the settings
+	return []string{
+		m.VMName.View(),
+		m.Hostname.View(),
+		m.Username.View(),
+		m.Disk.View(),
+		m.Memory.View(),
+		m.CPU.View(),
+		m.Distro.Value(),
+		m.Image.Value(),
+	}
 }
