@@ -18,6 +18,9 @@ const (
 	stepVMName
 	stepHostname
 	stepUsername
+	stepDisk
+	stepMemory
+	stepCPU
 )
 
 type Model struct {
@@ -27,6 +30,9 @@ type Model struct {
 	VMName   textinput.Model
 	Hostname textinput.Model
 	Username textinput.Model
+	Disk     textinput.Model
+	Memory   textinput.Model
+	CPU      textinput.Model
 }
 
 var Images = map[string][]string{
@@ -36,20 +42,45 @@ var Images = map[string][]string{
 }
 
 func New() Model {
+	// VM name
 	n := textinput.New()
-	n.Placeholder = fmt.Sprintf("ubuntu-%s", time.Now().Format("20060102"))
 	n.CharLimit = 156
 	n.SetWidth(20)
+	// Hostname
 	h := textinput.New()
-	h.Placeholder = fmt.Sprintf("ubuntu-lab")
+	h.Placeholder = "linux-lab"
 	h.CharLimit = 156
 	h.SetWidth(20)
+	// User name
+	u := textinput.New()
+	u.Placeholder = "admin"
+	u.CharLimit = 156
+	u.SetWidth(20)
+	// Disk Size
+	d := textinput.New()
+	d.Placeholder = "20G"
+	d.CharLimit = 7
+	d.SetWidth(20)
+	// Memory
+	m := textinput.New()
+	m.Placeholder = "2048MB"
+	m.CharLimit = 7
+	m.SetWidth(20)
+	// CPUs
+	c := textinput.New()
+	c.Placeholder = "2"
+	c.CharLimit = 3
+	c.SetWidth(20)
 
 	return Model{
 		step:     stepDistro,
 		Distro:   newSelect("distro", []string{"Debian/Ubuntu", "Rhel/Fedora", "Arch/Manjaro"}),
 		VMName:   n,
 		Hostname: h,
+		Username: u,
+		Disk:     d,
+		Memory:   m,
+		CPU:      c,
 	}
 }
 
@@ -74,28 +105,69 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case stepImage:
 				m.Image, _ = m.Image.Update(msg)
 				if m.Image.Chosen() {
+					m.VMName.Placeholder = fmt.Sprintf("%s-%s", m.Image.Value(), time.Now().Format("20060102"))
+					m.VMName.Focus()
 					m.step = stepVMName
 				}
 			case stepVMName:
-				m.VMName.Focus()
 				m.VMName, _ = m.VMName.Update(msg)
 				if msg.Code == tea.KeyEnter {
 					m.VMName.Blur()
 					if m.VMName.Value() == "" {
 						m.VMName.SetValue(m.VMName.Placeholder)
 					}
+					m.Hostname.Focus()
 					m.step = stepHostname
 				}
 			case stepHostname:
-				m.Hostname.Focus()
 				m.Hostname, _ = m.Hostname.Update(msg)
 				if msg.Code == tea.KeyEnter {
 					m.Hostname.Blur()
 					if m.Hostname.Value() == "" {
 						m.Hostname.SetValue(m.Hostname.Placeholder)
 					}
+					m.Username.Focus()
 					m.step = stepUsername
 				}
+			case stepUsername:
+				m.Username, _ = m.Username.Update(msg)
+				if msg.Code == tea.KeyEnter {
+					m.Username.Blur()
+					if m.Username.Value() == "" {
+						m.Username.SetValue(m.Username.Placeholder)
+					}
+					m.Disk.Focus()
+					m.step = stepDisk
+				}
+			case stepDisk:
+				m.Disk, _ = m.Disk.Update(msg)
+				if msg.Code == tea.KeyEnter {
+					m.Disk.Blur()
+					if m.Disk.Value() == "" {
+						m.Disk.SetValue(m.Disk.Placeholder)
+					}
+					m.Memory.Focus()
+					m.step = stepMemory
+				}
+			case stepMemory:
+				m.Memory, _ = m.Memory.Update(msg)
+				if msg.Code == tea.KeyEnter {
+					m.Memory.Blur()
+					if m.Memory.Value() == "" {
+						m.Memory.SetValue(m.Memory.Placeholder)
+					}
+					m.CPU.Focus()
+					m.step = stepCPU
+				}
+			case stepCPU:
+				m.CPU, _ = m.CPU.Update(msg)
+				if msg.Code == tea.KeyEnter {
+					m.CPU.Blur()
+					if m.CPU.Value() == "" {
+						m.CPU.SetValue(m.CPU.Placeholder)
+					}
+				}
+				m.step++
 			default:
 			}
 		}
@@ -119,6 +191,18 @@ func (m Model) View() tea.View {
 	if m.Hostname.Value() != "" && !m.Hostname.Focused() {
 		out = fmt.Sprintf("%s✔ hostname: %s\n", out, m.Hostname.View())
 	}
+	if m.Username.Value() != "" && !m.Username.Focused() {
+		out = fmt.Sprintf("%s✔ username: %s\n", out, m.Username.View())
+	}
+	if m.Disk.Value() != "" && !m.Disk.Focused() {
+		out = fmt.Sprintf("%s✔ disk: %s\n", out, m.Disk.View())
+	}
+	if m.Memory.Value() != "" && !m.Memory.Focused() {
+		out = fmt.Sprintf("%s✔ memory: %s\n", out, m.Memory.View())
+	}
+	if m.CPU.Value() != "" && !m.CPU.Focused() {
+		out = fmt.Sprintf("%s✔ CPU: %s\n", out, m.CPU.View())
+	}
 
 	switch m.step {
 	case stepDistro:
@@ -126,9 +210,17 @@ func (m Model) View() tea.View {
 	case stepImage:
 		return tea.NewView(fmt.Sprintf("%s%v", out, m.Image.View().Content))
 	case stepVMName:
-		return tea.NewView(fmt.Sprintf("%s%s", out, m.VMName.View()))
+		return tea.NewView(fmt.Sprintf("%s? VM Name: %s", out, m.VMName.View()))
 	case stepHostname:
-		return tea.NewView(fmt.Sprintf("%s%s", out, m.Hostname.View()))
+		return tea.NewView(fmt.Sprintf("%s? hostname: %s", out, m.Hostname.View()))
+	case stepUsername:
+		return tea.NewView(fmt.Sprintf("%s? username: %s", out, m.Username.View()))
+	case stepDisk:
+		return tea.NewView(fmt.Sprintf("%s? disk: %s", out, m.Disk.View()))
+	case stepMemory:
+		return tea.NewView(fmt.Sprintf("%s? memory: %s", out, m.Memory.View()))
+	case stepCPU:
+		return tea.NewView(fmt.Sprintf("%s? CPU: %s", out, m.CPU.View()))
 	default:
 		return tea.NewView(out)
 	}
