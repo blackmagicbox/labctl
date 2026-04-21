@@ -92,7 +92,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "q":
+			if m.step == stepDistro || m.step == stepImage {
+				return m, tea.Quit
+			}
+		case "ctrl+c":
 			return m, tea.Quit
 		default:
 			switch m.step {
@@ -166,8 +170,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.CPU.Value() == "" {
 						m.CPU.SetValue(m.CPU.Placeholder)
 					}
+					m.step++
 				}
-				m.step++
 			default:
 			}
 		}
@@ -206,7 +210,7 @@ func (m Model) View() tea.View {
 
 	switch m.step {
 	case stepDistro:
-		return m.Distro.View()
+		return tea.NewView(fmt.Sprintf("%s%v", out, m.Distro.View().Content))
 	case stepImage:
 		return tea.NewView(fmt.Sprintf("%s%v", out, m.Image.View().Content))
 	case stepVMName:
@@ -229,12 +233,12 @@ func (m Model) View() tea.View {
 func (m Model) Value() []string {
 	// Return a String with all the settings
 	return []string{
-		m.VMName.View(),
-		m.Hostname.View(),
-		m.Username.View(),
-		m.Disk.View(),
-		m.Memory.View(),
-		m.CPU.View(),
+		m.VMName.Value(),
+		m.Hostname.Value(),
+		m.Username.Value(),
+		m.Disk.Value(),
+		m.Memory.Value(),
+		m.CPU.Value(),
 		m.Distro.Value(),
 		m.Image.Value(),
 	}
