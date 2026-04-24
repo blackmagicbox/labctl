@@ -23,7 +23,6 @@ const (
 	stepMemory
 	stepCPU
 	stepConfirm
-	stepFinish
 )
 
 type Model struct {
@@ -183,17 +182,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.Confirmation.Value() == "Yes" {
 						// Todo: Start the new VM
 					}
-					m.step = stepFinish
-				}
-			case stepFinish:
-				k := msg.String()
-				if m.step > stepConfirm && k == "enter" {
 					return m, tea.Quit
 				}
 			default:
-				panic("unhandled model update")
 			}
-
 		}
 	}
 	var cmd tea.Cmd
@@ -256,14 +248,14 @@ func (m Model) View() tea.View {
 
 func (m Model) Value() *vm.Config {
 	vmConfig := vm.Config{
-		Distro:   m.VMName.Value(),
-		Image:    m.Hostname.Value(),
-		VMName:   m.Username.Value(),
-		Username: m.Disk.Value(),
-		Hostname: m.Memory.Value(),
-		Disk:     m.CPU.Value(),
-		Memory:   m.Distro.Value(),
-		CPU:      m.Image.Value(),
+		Distro:   m.Distro.Value(),
+		Image:    m.Image.Value(),
+		VMName:   m.VMName.Value(),
+		Username: m.Username.Value(),
+		Hostname: m.Hostname.Value(),
+		Disk:     m.Disk.Value(),
+		Memory:   m.Memory.Value(),
+		CPU:      m.CPU.Value(),
 	}
 	return &vmConfig
 }
