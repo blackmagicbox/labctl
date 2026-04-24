@@ -1,9 +1,6 @@
 package vm
 
-import (
-	"fmt"
-	"reflect"
-)
+import "fmt"
 
 type Config struct {
 	Distro   string
@@ -16,26 +13,24 @@ type Config struct {
 	CPU      string
 }
 
-func NewVMConfig(distro, image, vmName, username, hostname, disk, memory, cpu string) *Config {
-	return &Config{
-		Distro:   distro,
-		Image:    image,
-		VMName:   vmName,
-		Username: username,
-		Hostname: hostname,
-		Disk:     disk,
-		Memory:   memory,
-		CPU:      cpu,
-	}
-}
-
-func (c *Config) String() string {
-	out := "VM Config: \n"
-	val := reflect.ValueOf(c).Elem()
-	typeOfStruct := val.Type()
-
-	for i := 0; i < val.NumField(); i++ {
-		out = fmt.Sprintf("%s  %s: %v\n", out, typeOfStruct.Field(i).Name, val.Field(i).String())
-	}
-	return out
+func (c Config) String() string {
+	return fmt.Sprintf(
+		"VMConfig:\n"+
+			"  Distro: %s\n"+
+			"  Image: %s\n"+
+			"  VMName: %s\n"+
+			"  Username: %s\n"+
+			"  Hostname: %s\n"+
+			"  Disk: %s\n"+
+			"  Memory: %s\n"+
+			"  CPU: %s\n",
+		c.Distro,
+		c.Image,
+		c.VMName,
+		c.Username,
+		c.Hostname,
+		c.Disk,
+		c.Memory,
+		c.CPU,
+	)
 }

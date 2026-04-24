@@ -255,15 +255,15 @@ func (m Model) View() tea.View {
 }
 
 func (m Model) Value() *vm.Config {
-	vmConfig := vm.NewVMConfig(
-		m.VMName.Value(),
-		m.Hostname.Value(),
-		m.Username.Value(),
-		m.Disk.Value(),
-		m.Memory.Value(),
-		m.CPU.Value(),
-		m.Distro.Value(),
-		m.Image.Value(),
-	)
-	return vmConfig
+	vmConfig := vm.Config{
+		Distro:   m.VMName.Value(),
+		Image:    m.Hostname.Value(),
+		VMName:   m.Username.Value(),
+		Username: m.Disk.Value(),
+		Hostname: m.Memory.Value(),
+		Disk:     m.CPU.Value(),
+		Memory:   m.Distro.Value(),
+		CPU:      m.Image.Value(),
+	}
+	return &vmConfig
 }
