@@ -6,6 +6,7 @@ import (
 
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
+	"github.com/blackmagicbox/labctl/internal/vm"
 )
 
 type step int
@@ -21,18 +22,20 @@ const (
 	stepDisk
 	stepMemory
 	stepCPU
+	stepConfirm
 )
 
 type Model struct {
-	step     step
-	Distro   selectModel
-	Image    selectModel
-	VMName   textinput.Model
-	Hostname textinput.Model
-	Username textinput.Model
-	Disk     textinput.Model
-	Memory   textinput.Model
-	CPU      textinput.Model
+	step         step
+	Distro       selectModel
+	Image        selectModel
+	VMName       textinput.Model
+	Hostname     textinput.Model
+	Username     textinput.Model
+	Disk         textinput.Model
+	Memory       textinput.Model
+	CPU          textinput.Model
+	Confirmation selectModel
 }
 
 var Images = map[string][]string{
@@ -73,14 +76,15 @@ func New() Model {
 	c.SetWidth(20)
 
 	return Model{
-		step:     stepDistro,
-		Distro:   newSelect("distro", []string{"Debian/Ubuntu", "Rhel/Fedora", "Arch/Manjaro"}),
-		VMName:   n,
-		Hostname: h,
-		Username: u,
-		Disk:     d,
-		Memory:   m,
-		CPU:      c,
+		step:         stepDistro,
+		Distro:       newSelect("distro", []string{"Debian/Ubuntu", "Rhel/Fedora", "Arch/Manjaro"}),
+		VMName:       n,
+		Hostname:     h,
+		Username:     u,
+		Disk:         d,
+		Memory:       m,
+		CPU:          c,
+		Confirmation: newSelect("Start the new VM after the wizard", []string{"Yes", "No"}),
 	}
 }
 
@@ -92,13 +96,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
-		case "q":
-			if m.step == stepDistro || m.step == stepImage {
-				return m, tea.Quit
-			}
 		case "ctrl+c":
 			return m, tea.Quit
 		default:
+			k := msg.String()
+			if k == `q` && (m.step == stepDistro || m.step == stepImage) {
+				return m, tea.Quit
+			}
 			switch m.step {
 			case stepDistro:
 				m.Distro, _ = m.Distro.Update(msg)
@@ -170,12 +174,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.CPU.Value() == "" {
 						m.CPU.SetValue(m.CPU.Placeholder)
 					}
-					m.step++
+					m.step = stepConfirm
+				}
+			case stepConfirm:
+				m.Confirmation, _ = m.Confirmation.Update(msg)
+				if m.Confirmation.Chosen() {
+					if m.Confirmation.Value() == "Yes" {
+						// Todo: Start the new VM
+					}
+					return m, tea.Quit
 				}
 			default:
 			}
 		}
-
 	}
 	var cmd tea.Cmd
 	return m, cmd
@@ -207,6 +218,9 @@ func (m Model) View() tea.View {
 	if m.CPU.Value() != "" && !m.CPU.Focused() {
 		out = fmt.Sprintf("%s✔ CPU: %s\n", out, m.CPU.View())
 	}
+	if m.Confirmation.Chosen() {
+		out = fmt.Sprintf("%s✔ Start the vm: (%s)\n", out, m.Confirmation.Value())
+	}
 
 	switch m.step {
 	case stepDistro:
@@ -225,21 +239,23 @@ func (m Model) View() tea.View {
 		return tea.NewView(fmt.Sprintf("%s? memory: %s", out, m.Memory.View()))
 	case stepCPU:
 		return tea.NewView(fmt.Sprintf("%s? CPU: %s", out, m.CPU.View()))
+	case stepConfirm:
+		return tea.NewView(fmt.Sprintf("%s%s", out, m.Confirmation.View().Content))
 	default:
 		return tea.NewView(out)
 	}
 }
 
-func (m Model) Value() []string {
-	// Return a String with all the settings
-	return []string{
-		m.VMName.Value(),
-		m.Hostname.Value(),
-		m.Username.Value(),
-		m.Disk.Value(),
-		m.Memory.Value(),
-		m.CPU.Value(),
-		m.Distro.Value(),
-		m.Image.Value(),
+func (m Model) Value() *vm.Config {
+	vmConfig := vm.Config{
+		Distro:   m.Distro.Value(),
+		Image:    m.Image.Value(),
+		VMName:   m.VMName.Value(),
+		Username: m.Username.Value(),
+		Hostname: m.Hostname.Value(),
+		Disk:     m.Disk.Value(),
+		Memory:   m.Memory.Value(),
+		CPU:      m.CPU.Value(),
 	}
+	return &vmConfig
 }

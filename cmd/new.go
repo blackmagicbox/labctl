@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/blackmagicbox/labctl/internal/tui"
@@ -23,7 +22,7 @@ var newCmd = &cobra.Command{
 			_, _ = fmt.Fprintf(os.Stderr, "error %v\n", err)
 		}
 		finalModel := result.(tui.Model)
-		fmt.Printf("\nVM: \n%v\n", strings.Join(finalModel.Value(), "\n"))
+		fmt.Printf("\n%v\n", finalModel.Value().String())
 
 	},
 }
