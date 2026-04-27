@@ -54,7 +54,7 @@ func New() Model {
 	h.Placeholder = "linux-lab"
 	h.CharLimit = 156
 	h.SetWidth(156)
-	// User name
+	// Username
 	u := textinput.New()
 	u.Placeholder = "admin"
 	u.CharLimit = 156
