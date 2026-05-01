@@ -1,0 +1,15 @@
+#cloud-config
+users:
+    - name: {{ .Username }}
+      sudo: ALL=(ALL) NOPASSWD:ALL
+      shell: bin/bash
+      ssh_authorized_keys:
+        - {{ .SSHKey }}
+
+ssh_pwauth: false
+package_update: true
+packages:
+    - vim
+    - curl
+    - htop
+
