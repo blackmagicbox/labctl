@@ -1,0 +1,12 @@
+#cloud-config
+users:
+    - name: {{.Username}}
+      groups: sudo
+      sudo: ALL=(ALL) NOPASSWD:ALL
+      ssh_authorized_keys:
+        - ssh-rsa AAA...placeholder # TODO:auth
+package_update: true
+packages:
+    - vim
+    - curl
+    - htop
